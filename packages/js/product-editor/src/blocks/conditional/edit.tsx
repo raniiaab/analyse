@@ -12,15 +12,24 @@ import { Product } from '@woocommerce/data';
 // eslint-disable-next-line @woocommerce/dependency-group
 import { useEntityId } from '@wordpress/core-data';
 
+/**
+ * Internal dependencies
+ */
+import { Condition, evaluateCondition } from '../../utils/evaluate-condition';
+
 export function Edit( {
 	attributes,
+	context,
 }: {
 	attributes: BlockAttributes & {
 		mustMatch: Record< string, Array< string > >;
 	};
+	context: {
+		[ key: string ]: unknown;
+	};
 } ) {
 	const blockProps = useBlockProps();
-	const { mustMatch } = attributes;
+	const { conditions } = attributes;
 
 	const productId = useEntityId( 'postType', 'product' );
 	const product: Product = useSelect( ( select ) =>
@@ -32,13 +41,18 @@ export function Edit( {
 	);
 
 	const displayBlocks = useMemo( () => {
-		for ( const [ prop, values ] of Object.entries( mustMatch ) ) {
-			if ( ! values.includes( product[ prop ] ) ) {
-				return false;
-			}
-		}
-		return true;
-	}, [ mustMatch, product ] );
+		const result = conditions.reduce(
+			( evaluated: boolean, condition: Condition ) => {
+				if ( ! evaluated ) {
+					return false;
+				}
+				return evaluateCondition( context, condition );
+			},
+			true
+		);
+
+		return result;
+	}, [ conditions, product ] );
 
 	return (
 		<div { ...blockProps }>

@@ -601,8 +601,12 @@ class Init {
 										array(
 											'woocommerce/conditional',
 											array(
-												'mustMatch' => array(
-													'manage_stock' => array( true ),
+												'conditions' => array(
+													array(
+														'key'      => 'editedProduct.manage_stock',
+														'operator' => '=',
+														'value'    => true,
+													),
 												),
 											),
 											array(
@@ -616,8 +620,12 @@ class Init {
 								array(
 									'woocommerce/conditional',
 									array(
-										'mustMatch' => array(
-											'manage_stock' => array( false ),
+										'conditions' => array(
+											array(
+												'key'      => 'editedProduct.manage_stock',
+												'operator' => '=',
+												'value'    => false,
+											),
 										),
 									),
 									array(
@@ -661,8 +669,12 @@ class Init {
 												array(
 													'woocommerce/conditional',
 													array(
-														'mustMatch' => array(
-															'manage_stock' => array( true ),
+														'conditions' => array(
+															array(
+																'key'      => 'editedProduct.manage_stock',
+																'operator' => '=',
+																'value'    => true,
+															),
 														),
 													),
 													array(
