@@ -1,0 +1,165 @@
+<?php
+/**
+ * Plugin package class for retrieving basic plugin information.
+ */
+
+namespace {{namespacePascalCase}};
+
+/**
+ * Package class.
+ */
+class Package {
+
+    /**
+	 * Plugin ID.
+	 *
+	 * @var string
+	 */
+	private $id = '{{namespace}}';
+
+    /**
+	 * Current plugin version.
+	 *
+	 * @var string
+	 */
+	private $version = '{{version}}';
+
+	/**
+	 * Plugin path.
+	 *
+	 * @var string
+	 */
+	private $plugin_path;
+
+    /**
+	 * Build path.
+	 *
+	 * @var string
+	 */
+	private $build_path;
+
+    /**
+	 * Includes path.
+	 *
+	 * @var string
+	 */
+	private $includes_path;
+
+	/**
+	 * Plugin directory URL.
+	 *
+	 * @var string
+	 */
+	private $plugin_dir_url;
+
+	/**
+	 * Build directory URL.
+	 *
+	 * @var string
+	 */
+	private $build_dir_url;
+
+    /**
+     * Constructor.
+     */
+    public function __construct( $plugin_path ) {
+        $this->plugin_path   = $plugin_path;
+        $this->build_path    = $this->plugin_path . 'build/';
+        $this->includes_path = $this->plugin_path . '{{{includesDir}}}';
+
+		add_action( 'plugins_loaded', array( $this, 'init' ) );
+    }
+
+    /**
+	 * Returns the version of the plugin.
+	 *
+	 * @return string
+	 */
+	public function get_version() {
+		return $this->version;
+	}
+
+    /**
+	 * Returns the path to the plugin directory.
+	 *
+	 * @param string $relative_path  If provided, the relative path will be
+	 *                               appended to the plugin path.
+	 *
+	 * @return string
+	 */
+	public function get_path( $relative_path = '' ) {
+		return trailingslashit( $this->plugin_path ) . $relative_path;
+	}
+
+    /**
+	 * Returns the path to the build directory.
+	 *
+	 * @param string $relative_path  If provided, the relative path will be
+	 *                               appended to the build path.
+	 *
+	 * @return string
+	 */
+	public function get_build_path( $relative_path = '' ) {
+		return trailingslashit( $this->build_path ) . $relative_path;
+	}
+
+    /**
+	 * Returns the path to the build directory.
+	 *
+	 * @param string $relative_path  If provided, the relative path will be
+	 *                               appended to the build path.
+	 *
+	 * @return string
+	 */
+	public function get_includes_path( $relative_path = '' ) {
+		return trailingslashit( $this->includes_path ) . $relative_path;
+	}
+
+	/**
+	 * Returns the url to the plugin directory.
+	 *
+	 * @param string $relative_url If provided, the relative url will be
+	 *                             appended to the plugin url.
+	 *
+	 * @return string
+	 */
+	public function get_url( $relative_url = '' ) {
+		if ( ! $this->plugin_dir_url ) {
+			$this->plugin_dir_url = plugin_dir_url( $this->plugin_path . '/index.php' );
+		}
+
+		return $this->plugin_dir_url . $relative_url;
+	}
+
+	/**
+	 * Returns the url to the build directory.
+	 *
+	 * @param string $relative_url If provided, the relative url will be
+	 *                             appended to the plugin url.
+	 *
+	 * @return string
+	 */
+	public function get_build_url( $relative_url = '' ) {
+		if ( ! $this->build_dir_url ) {
+			$this->build_dir_url = plugin_dir_url( $this->build_path . '/index.php' );
+		}
+
+		return $this->build_dir_url . $relative_url;
+	}
+
+	/**
+	 * Init modules.
+	 */
+	public function init() {
+		$modules = [
+			{{#modules}}
+			{{.}}::class,
+			{{/modules}}
+		];
+
+		foreach ( $modules as $module ) {
+			new $module( $this );
+		}
+	}
+
+}

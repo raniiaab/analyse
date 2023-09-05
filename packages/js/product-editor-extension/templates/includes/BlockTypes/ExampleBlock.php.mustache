@@ -1,0 +1,52 @@
+<?php
+
+namespace {{namespacePascalCase}}\BlockTypes;
+
+use Automattic\WooCommerce\Admin\Blocks\AbstractBlock;
+use Automattic\WooCommerce\Admin\Features\ProductBlockEditor\ProductTemplates\ProductFormTemplateInterface;
+use Automattic\WooCommerce\Admin\BlockTemplates\BlockTemplateInterface;
+
+class ExampleBlock extends AbstractBlock {
+
+    /**
+	 * Block namespace.
+	 *
+	 * @var string
+	 */
+	protected $namespace = '{{namespace}}';
+
+	/**
+	 * Block name within this namespace.
+	 *
+	 * @var string
+	 */
+	protected $block_name = 'example-block';
+
+    /**
+     * Initialize the block.
+     */
+    public function init() {
+        parent::init();
+        add_action( 'woocommerce_block_template_register', [ $this, 'add_block_to_simple_product_template' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_block_scripts_and_styles' ] );
+    }
+
+    /**
+     * Add the block to the simple product template.
+     */
+    public function add_block_to_simple_product_template( BlockTemplateInterface $template ) {
+		if ( $template instanceof ProductFormTemplateInterface && 'simple-product' === $template->get_id() ) {
+			$section = $template->get_section_by_id( 'basic-details' );
+			$section->add_block(
+				[
+					'id'         => '{{namespace}}-example-block',
+					'blockName'  => $this->get_block_type(),
+					'order'      => 15,
+					'attributes' => [
+						'message' => __( 'Custom product editor block', '{{textdomain}}' ),
+					],
+				]
+			);
+		}
+    }
+}
