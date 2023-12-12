@@ -12,6 +12,9 @@ import CLIError from '@wordpress/create-block/lib/cli-error';
 import * as log from './log';
 import { getPluginData } from './get-plugin-data';
 import { getPluginConfig } from './get-plugin-config';
+import { OptionValues } from './types';
+import { scaffold } from './scaffold';
+import { getPluginTemplate, getDefaultValues } from './templates';
 
 //add the following line
 const program = new Command();
@@ -49,21 +52,78 @@ program
 		'the path to the src directory with client-side logic'
 	)
 	.option( '--namespace <value>', 'internal namespace for the plugin' )
-	.action( async () => {
-		try {
-			const pluginData = getPluginData();
-			const pluginConfig = getPluginConfig();
-			log.info( JSON.stringify( pluginData ) );
-			log.info( JSON.stringify( pluginConfig ) );
-		} catch ( error ) {
-			if ( error instanceof CLIError ) {
-				log.error( error.message );
-				process.exit( 1 );
-			} else {
-				throw error;
+	.action(
+		async ( {
+			wpScripts,
+			wpEnv,
+			template,
+			variant,
+			includesDir,
+			srcDir,
+			namespace,
+		}: OptionValues ) => {
+			try {
+				const pluginTemplate = await getPluginTemplate( template );
+				if ( ! pluginTemplate ) {
+					return;
+				}
+				const availableVariants = Object.keys(
+					pluginTemplate.variants
+				);
+				if ( variant && ! availableVariants.includes( variant ) ) {
+					if ( ! availableVariants.length ) {
+						throw new CLIError(
+							`"${ variant }" variant was selected. This template does not have any variants!`
+						);
+					}
+					throw new CLIError(
+						`"${ variant }" is not a valid variant for this template. Available variants are: ${ availableVariants.join(
+							', '
+						) }.`
+					);
+				}
+				const optionsValues: Pick<
+					OptionValues,
+					'template' | 'wpScripts' | 'wpEnv'
+				> &
+					Partial< OptionValues > = {
+					template,
+					wpScripts,
+					wpEnv,
+					...Object.fromEntries(
+						Object.entries( {
+							includesDir,
+							namespace,
+							srcDir,
+						} ).filter( ( [ , value ] ) => value !== undefined )
+					),
+				};
+
+				const pluginData = getPluginData();
+				const pluginConfig = getPluginConfig();
+				const defaultValues = getDefaultValues(
+					pluginTemplate,
+					variant
+				);
+
+				const answers = {
+					...defaultValues,
+					...pluginData,
+					...pluginConfig,
+					...optionsValues,
+				};
+
+				await scaffold( pluginTemplate, answers );
+			} catch ( error ) {
+				if ( error instanceof CLIError ) {
+					log.error( error.message );
+					process.exit( 1 );
+				} else {
+					throw error;
+				}
 			}
 		}
-	} )
+	)
 	.on( '--help', () => {
 		log.info( '' );
 		log.info( 'Examples:' );
