@@ -2351,4 +2351,42 @@ class WC_Order extends WC_Abstract_Order {
 	public function untrash(): bool {
 		return (bool) $this->data_store->untrash_order( $this );
 	}
+
+	/**
+	 * Get allowed billing countries for edit.
+	 *
+	 * @return array
+	 */
+	public function get_allowed_billing_countries_for_edit() {
+		$countries = WC()->countries->get_allowed_countries();
+		if ( ! isset( $countries[ $this->get_billing_country() ] ) ) {
+			$all_countries = WC()->countries->get_countries();
+			if ( isset( $all_countries[ $this->get_billing_country() ] ) ) {
+				$countries[ $this->get_billing_country() ] = $all_countries[ $this->get_billing_country() ];
+				if ( apply_filters( 'woocommerce_sort_countries', true ) ) {
+					wc_asort_by_locale( $countries );
+				}
+			}
+		}
+		return $countries;
+	}
+
+	/**
+	 * Get allowed shipping countries for edit.
+	 *
+	 * @return array
+	 */
+	public function get_allowed_shipping_countries_for_edit() {
+		$countries = WC()->countries->get_shipping_countries();
+		if ( ! isset( $countries[ $this->get_shipping_country() ] ) ) {
+			$all_countries = WC()->countries->get_countries();
+			if ( isset( $all_countries[ $this->get_shipping_country() ] ) ) {
+				$countries[ $this->get_shipping_country() ] = $all_countries[ $this->get_shipping_country() ];
+				if ( apply_filters( 'woocommerce_sort_countries', true ) ) {
+					wc_asort_by_locale( $countries );
+				}
+			}
+		}
+		return $countries;
+	}
 }
