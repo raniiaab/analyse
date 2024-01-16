@@ -35,8 +35,10 @@ class WC_Meta_Box_Order_Data {
 
 	/**
 	 * Init billing and shipping fields we display + save.
+	 *
+	 * @param WC_Order $order Order object.
 	 */
-	public static function init_address_fields() {
+	public static function init_address_fields( $order ) {
 
 		/**
 		 * Provides an opportunity to modify the list of order billing fields displayed on the admin.
@@ -81,7 +83,7 @@ class WC_Meta_Box_Order_Data {
 					'show'    => false,
 					'class'   => 'js_field-country select short',
 					'type'    => 'select',
-					'options' => array( '' => __( 'Select a country / region&hellip;', 'woocommerce' ) ) + WC()->countries->get_allowed_countries(),
+					'options' => array( '' => __( 'Select a country / region&hellip;', 'woocommerce' ) ) + $order->get_allowed_billing_countries_for_edit(),
 				),
 				'state'      => array(
 					'label' => __( 'State / County', 'woocommerce' ),
@@ -140,7 +142,7 @@ class WC_Meta_Box_Order_Data {
 					'show'    => false,
 					'type'    => 'select',
 					'class'   => 'js_field-country select short',
-					'options' => array( '' => __( 'Select a country / region&hellip;', 'woocommerce' ) ) + WC()->countries->get_shipping_countries(),
+					'options' => array( '' => __( 'Select a country / region&hellip;', 'woocommerce' ) ) + $order->get_allowed_shipping_countries_for_edit(),
 				),
 				'state'      => array(
 					'label' => __( 'State / County', 'woocommerce' ),
@@ -166,7 +168,7 @@ class WC_Meta_Box_Order_Data {
 
 		$order = $theorder;
 
-		self::init_address_fields();
+		self::init_address_fields( $order );
 
 		if ( WC()->payment_gateways() ) {
 			$payment_gateways = WC()->payment_gateways->payment_gateways();
