@@ -5,6 +5,7 @@
 
 namespace Automattic\WooCommerce\Admin\Features\ProductBlockEditor;
 
+use Automattic\WooCommerce\Admin\PageController;
 use Automattic\WooCommerce\Internal\Admin\WCAdminAssets;
 
 /**
