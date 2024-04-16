@@ -61,9 +61,10 @@ class Init {
 			array_push( $this->supported_product_types, 'grouped' );
 		}
 
-		$this->redirection_controller = new RedirectionController();
+		// $this->redirection_controller = new RedirectionController();
 
 		if ( \Automattic\WooCommerce\Utilities\FeaturesUtil::feature_is_enabled( 'product_block_editor' ) ) {
+
 			if ( ! Features::is_enabled( 'new-product-management-experience' ) ) {
 				add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 				add_action( 'admin_enqueue_scripts', array( $this, 'dequeue_conflicting_styles' ), 100 );
@@ -73,7 +74,7 @@ class Init {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 			add_filter( 'woocommerce_register_post_type_product_variation', array( $this, 'enable_rest_api_for_product_variation' ) );
 
-			add_action( 'current_screen', array( $this, 'set_current_screen_to_block_editor_if_wc_admin' ) );
+			// add_action( 'current_screen', array( $this, 'set_current_screen_to_block_editor_if_wc_admin' ) );
 
 			add_action( 'rest_api_init', array( $this, 'register_layout_templates' ) );
 			add_action( 'rest_api_init', array( $this, 'register_user_metas' ) );
@@ -87,14 +88,37 @@ class Init {
 			$tracks->init();
 
 			$this->register_product_templates();
+			add_filter(
+				'use_block_editor_for_post_type',
+				array( $this, 'activate_blocks_product' ),
+				20,
+				2
+			);
+			add_filter( 'replace_editor', array( $this, 'replace_editor'), 10, 2 );
 		}
+	}
+
+	public function activate_blocks_product( $can_edit, $post_type ) {
+		if ( $post_type == 'product' ) {
+            $can_edit = true;
+        }
+    	return $can_edit;
+	}
+
+	public function replace_editor( $replace, $post ) {
+		$current_screen = get_current_screen();
+		if ( use_block_editor_for_post( $post ) && $post->post_type === 'product' && $current_screen ) {
+			require dirname( __FILE__ ) . '/edit-product-blocks.php';
+			return true;
+		}
+		return $replace;
 	}
 
 	/**
 	 * Enqueue scripts needed for the product form block editor.
 	 */
 	public function enqueue_scripts() {
-		if ( ! PageController::is_admin_or_embed_page() ) {
+		if ( ! PageController::is_admin_or_embed_page() && ! PageController::is_product_page() ) {
 			return;
 		}
 
@@ -108,6 +132,9 @@ class Init {
 			'var productBlockEditorSettings = productBlockEditorSettings || ' . wp_json_encode( $editor_settings ) . ';',
 			'before'
 		);
+		if ( ! PageController::is_admin_or_embed_page() ) {
+			return;
+		}
 		wp_add_inline_script(
 			$script_handle,
 			sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( $editor_settings['blockCategories'] ) ),
@@ -121,7 +148,7 @@ class Init {
 	 * Enqueue styles needed for the rich text editor.
 	 */
 	public function enqueue_styles() {
-		if ( ! PageController::is_admin_or_embed_page() ) {
+		if ( ! PageController::is_admin_or_embed_page()  ) {
 			return;
 		}
 		wp_enqueue_style( 'wp-edit-blocks' );
@@ -139,7 +166,7 @@ class Init {
 	 * Dequeue conflicting styles.
 	 */
 	public function dequeue_conflicting_styles() {
-		if ( ! PageController::is_admin_or_embed_page() ) {
+		if ( ! PageController::is_admin_or_embed_page()  ) {
 			return;
 		}
 		// Dequeing this to avoid conflicts, until we remove the 'woocommerce-page' class.
@@ -228,6 +255,7 @@ class Init {
 			},
 			$this->product_templates
 		);
+		error_log( print_r( $editor_settings, true ) );
 
 		$block_editor_context = new WP_Block_Editor_Context( array( 'name' => self::EDITOR_CONTEXT_NAME ) );
 
@@ -380,7 +408,7 @@ class Init {
 			}
 		);
 
-		$this->redirection_controller->set_product_templates( $this->product_templates );
+		// $this->redirection_controller->set_product_templates( $this->product_templates );
 	}
 
 	/**

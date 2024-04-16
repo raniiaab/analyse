@@ -574,6 +574,11 @@ class PageController {
 	 * TODO: See usage in `admin.php`. This needs refactored and implemented properly in core.
 	 */
 	public static function is_embed_page() {
-		return wc_admin_is_connected_page() || ( ! self::is_admin_page() && class_exists( 'Automattic\WooCommerce\Admin\Features\Navigation\Screen' ) && Screen::is_woocommerce_page() );
+		return wc_admin_is_connected_page() || ( ! self::is_admin_page() && class_exists( 'Automattic\WooCommerce\Admin\Features\Navigation\Screen' ) && Screen::is_woocommerce_page() ); // || self::is_product_page();
+	}
+
+	public static function is_product_page() {
+		global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
+		return ( isset( $_GET['post_type']) && 'product' === $_GET['post_type'] ) || ( isset( $_GET['post'] ) && $post_type === 'product' );
 	}
 }

@@ -27,9 +27,23 @@ import './product-page.scss';
 
 productApiFetchMiddleware();
 
+let productId: string | undefined;
+declare global {
+	interface Window {
+		_wpLoadBlockEditor?: Promise< {
+			postId: number;
+		} >;
+	}
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if ( window._wpLoadBlockEditor ) {
+	window._wpLoadBlockEditor.then( ( data ) => {
+		productId = data.postId.toString();
+	} );
+}
 export default function ProductPage() {
-	const { productId } = useParams();
-
+	const params = useParams();
+	productId = productId || params.productId;
 	const product = useProductEntityRecord( productId );
 
 	useEffect( () => {
@@ -97,9 +111,5 @@ export default function ProductPage() {
 		[ productId ]
 	);
 
-	return (
-		<>
-			<Editor product={ product } />
-		</>
-	);
+	return <>{ product && <Editor product={ product } /> }</>;
 }

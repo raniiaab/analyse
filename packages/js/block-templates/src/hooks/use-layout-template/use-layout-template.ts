@@ -49,7 +49,7 @@ export const useLayoutTemplate = ( layoutTemplateId: string | undefined ) => {
 		// Note: Until we are using @woocommerce/core-data 6.24.0 (Gutenberg 17.2),
 		// the REST API requests will still be triggered even when the query is disabled due to a regression.
 		// See: https://github.com/WordPress/gutenberg/pull/56108
-		{ enabled: !! layoutTemplateId }
+		{ enabled: !! layoutTemplateId && !! layoutTemplateEntity }
 	);
 
 	return { layoutTemplate, isResolving };

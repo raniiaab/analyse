@@ -73,6 +73,7 @@ const wpAdminScripts = [
 	'shipping-settings-region-picker',
 	'command-palette',
 	'command-palette-analytics',
+	'product-editor-app',
 ];
 const getEntryPoints = () => {
 	const entryPoints = {
