@@ -6,7 +6,7 @@ import { useWooBlockProps } from '@woocommerce/block-templates';
 import { Product } from '@woocommerce/data';
 import { useInstanceId } from '@wordpress/compose';
 import { useEntityProp } from '@wordpress/core-data';
-import { createElement, useEffect } from '@wordpress/element';
+import { createElement, useEffect, Fragment } from '@wordpress/element';
 import { sprintf, __ } from '@wordpress/i18n';
 import {
 	BaseControl,
@@ -23,6 +23,8 @@ import { useCurrencyInputProps } from '../../../hooks/use-currency-input-props';
 import { sanitizeHTML } from '../../../utils/sanitize-html';
 import type { ProductEditorBlockEditProps } from '../../../types';
 import type { SalePriceBlockAttributes } from './types';
+import { RegularPriceMenuGroup } from './regular-price-menu-group';
+import { RegularPriceMultipleSelectionMenuItem } from './regular-price-multiple-selection-menu-item';
 
 export function Edit( {
 	attributes,
@@ -96,34 +98,38 @@ export function Edit( {
 	}, [] );
 
 	return (
-		<div { ...blockProps }>
-			<BaseControl
-				id={ regularPriceId }
-				help={
-					regularPriceValidationError
-						? regularPriceValidationError
-						: renderHelp()
-				}
-				className={ classNames( {
-					'has-error': regularPriceValidationError,
-				} ) }
-			>
-				<InputControl
-					{ ...inputProps }
+		<>
+			<div { ...blockProps }>
+				<BaseControl
 					id={ regularPriceId }
-					name={ 'regular_price' }
-					ref={ regularPriceRef }
-					label={
-						tooltip ? (
-							<Label label={ label } tooltip={ tooltip } />
-						) : (
-							label
-						)
+					help={
+						regularPriceValidationError
+							? regularPriceValidationError
+							: renderHelp()
 					}
-					disabled={ disabled }
-					onBlur={ validateRegularPrice }
-				/>
-			</BaseControl>
-		</div>
+					className={ classNames( {
+						'has-error': regularPriceValidationError,
+					} ) }
+				>
+					<InputControl
+						{ ...inputProps }
+						id={ regularPriceId }
+						name={ 'regular_price' }
+						ref={ regularPriceRef }
+						label={
+							tooltip ? (
+								<Label label={ label } tooltip={ tooltip } />
+							) : (
+								label
+							)
+						}
+						disabled={ disabled }
+						onBlur={ validateRegularPrice }
+					/>
+				</BaseControl>
+			</div>
+			<RegularPriceMenuGroup />
+			<RegularPriceMultipleSelectionMenuItem />
+		</>
 	);
 }

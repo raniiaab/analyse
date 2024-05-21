@@ -19,7 +19,6 @@ import { ToggleVisibilityMenuItem } from '../toggle-visibility-menu-item';
 import { DownloadsMenuItem } from '../downloads-menu-item';
 import { VariationQuickUpdateMenuItem } from './variation-quick-update-menu-item';
 import { UpdateStockMenuItem } from '../update-stock-menu-item';
-import { SetListPriceMenuItem } from '../set-list-price-menu-item';
 import { AddImageMenuItem } from '../add-image-menu-item';
 
 export function VariationActions( {
@@ -61,7 +60,10 @@ export function VariationActions( {
 							onChange={ onChange }
 							onClose={ onClose }
 						/>
-						<SetListPriceMenuItem
+						<VariationQuickUpdateMenuItem.Slot
+							group="multiple-selections"
+							supportsMultipleSelection
+							renderGroup={ false }
 							selection={ selection }
 							onChange={ onChange }
 							onClose={ onClose }
