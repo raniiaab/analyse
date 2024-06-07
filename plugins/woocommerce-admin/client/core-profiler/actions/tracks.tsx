@@ -15,6 +15,7 @@ import {
 	PluginsInstallationCompletedWithErrorsEvent,
 	PluginsInstallationCompletedEvent,
 	PluginsInstallationRequestedEvent,
+	IntroOptInEvent,
 } from '..';
 import { POSSIBLY_DEFAULT_STORE_NAMES } from '../pages/BusinessInfo';
 import {
@@ -211,6 +212,16 @@ const recordSuccessfulPluginInstallation = (
 	);
 };
 
+const recordSkipGuidedSetup = ( context: unknown, _event: IntroOptInEvent ) => {
+	if ( ! _event?.payload?.optInDataSharing ) {
+		return;
+	}
+
+	recordEvent( 'coreprofiler_skip_guided_setup', {
+		wc_version: getSetting( 'wcVersion' ),
+	} );
+};
+
 export default {
 	recordTracksStepViewed,
 	recordTracksStepSkipped,
@@ -223,4 +234,5 @@ export default {
 	recordSuccessfulPluginInstallation,
 	recordTracksPluginsInstallationRequest,
 	recordTracksIsEmailChanged,
+	recordSkipGuidedSetup,
 };
