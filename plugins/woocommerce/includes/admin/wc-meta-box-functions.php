@@ -65,20 +65,31 @@ function woocommerce_wp_text_input( $field, WC_Data $data = null ) {
 		}
 	}
 
-	echo '<p class="form-field ' . esc_attr( $field['id'] ) . '_field ' . esc_attr( $field['wrapper_class'] ) . '">
+	echo '<div class="form-field ' . esc_attr( $field['id'] ) . '_field ' . esc_attr( $field['wrapper_class'] ) . '" data-react-component="TextControl">
 		<label for="' . esc_attr( $field['id'] ) . '">' . wp_kses_post( $field['label'] ) . '</label>';
 
 	if ( ! empty( $field['description'] ) && false !== $field['desc_tip'] ) {
 		echo wc_help_tip( $field['description'] );
 	}
 
-	echo '<input type="' . esc_attr( $field['type'] ) . '" class="' . esc_attr( $field['class'] ) . '" style="' . esc_attr( $field['style'] ) . '" name="' . esc_attr( $field['name'] ) . '" id="' . esc_attr( $field['id'] ) . '" value="' . esc_attr( $field['value'] ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '" ' . implode( ' ', $custom_attributes ) . ' /> ';
+	echo '<input type="' . esc_attr( $field['type'] ) . '" class="' . esc_attr( $field['class'] ) . '" style="' . esc_attr( $field['style'] ) . '" name="' . esc_attr( $field['name'] ) . '" id="' . esc_attr( $field['id'] ) . '" value="' . esc_attr( $field['value'] ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '" ' . implode( ' ', $custom_attributes ) . ' data-wp-on--change="actions.handleInputChange" data-wp-bind--value="state.product.' . woocommerce_get_field_property_from_id( $field['id'] ) . '" /> ';
 
 	if ( ! empty( $field['description'] ) && false === $field['desc_tip'] ) {
 		echo '<span class="description">' . wp_kses_post( $field['description'] ) . '</span>';
 	}
 
-	echo '</p>';
+	echo '</div>';
+}
+
+/**
+ * Get a field property from ID.
+ */
+function woocommerce_get_field_property_from_id( $id ) {
+	if ( strpos( $id, '_' ) === 0 ) {
+		return substr( $id, 1 );
+	}
+
+	return $id;
 }
 
 /**
