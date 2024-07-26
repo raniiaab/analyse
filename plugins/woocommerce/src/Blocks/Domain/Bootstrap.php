@@ -13,7 +13,6 @@ use Automattic\WooCommerce\Blocks\Patterns\AIPatterns;
 use Automattic\WooCommerce\Blocks\Patterns\PatternRegistry;
 use Automattic\WooCommerce\Blocks\Patterns\PTKClient;
 use Automattic\WooCommerce\Blocks\Patterns\PTKPatternsStore;
-use Automattic\WooCommerce\Blocks\QueryFilters;
 use Automattic\WooCommerce\Blocks\Domain\Services\CreateAccount;
 use Automattic\WooCommerce\Blocks\Domain\Services\Notices;
 use Automattic\WooCommerce\Blocks\Domain\Services\DraftOrders;
@@ -187,8 +186,6 @@ class Bootstrap {
 			$this->container->get( PTKPatternsStore::class );
 			$this->container->get( TemplateOptions::class )->init();
 		}
-
-		$this->container->get( QueryFilters::class )->init();
 	}
 
 	/**
@@ -440,12 +437,6 @@ class Bootstrap {
 			TasksController::class,
 			function () {
 				return new TasksController();
-			}
-		);
-		$this->container->register(
-			QueryFilters::class,
-			function () {
-				return new QueryFilters();
 			}
 		);
 	}
