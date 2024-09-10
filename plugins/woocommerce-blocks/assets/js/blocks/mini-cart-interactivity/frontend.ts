@@ -8,6 +8,7 @@ import lazyLoadScript, {
 	isScriptTagInDOM,
 } from '@woocommerce/base-utils/lazy-load-script';
 import {
+	ReactRootWithContainer,
 	getNavigationType,
 	translateJQueryEventToNative,
 } from '@woocommerce/base-utils';
@@ -32,15 +33,19 @@ interface dependencyData {
 	translations?: string;
 }
 
+interface State {
+	existingRoot: ReactRootWithContainer[] | null;
+	displayQuantityBadgeStyle: string;
+	priceAriaLabel: string;
+}
+
 interface Store {
-	state: {
-		displayQuantityBadgeStyle: string;
-		priceAriaLabel: string;
-	};
+	state: State;
 	callbacks: {
 		initialize: () => void;
 		toggleDrawerOpen: ( event: Event ) => void;
 		loadScripts: () => Promise< void >;
+		closeDrawer: () => void;
 	};
 }
 
@@ -100,8 +105,24 @@ const loadScripts = async () => {
 	}
 };
 
-store< Store >( 'woocommerce/mini-cart-interactivity', {
+const renderContents = async ( state: State ) => {
+	const { renderMiniCartContents } = await import(
+		'./render-mini-cart-contents'
+	);
+
+	const templateContainer = document.querySelector< HTMLDivElement >(
+		'.wc-block-mini-cart-interactivity__template-part'
+	);
+
+	// Only render the contents if there is no existing root.
+	if ( templateContainer && ! state.existingRoot ) {
+		state.existingRoot = renderMiniCartContents( templateContainer );
+	}
+};
+
+const { state } = store< Store >( 'woocommerce/mini-cart-interactivity', {
 	state: {
+		existingRoot: null,
 		get displayQuantityBadgeStyle() {
 			const context = getContext< Context >();
 			return context.cartItemCount > 0 ? 'flex' : 'none';
@@ -178,15 +199,18 @@ store< Store >( 'woocommerce/mini-cart-interactivity', {
 			} );
 		},
 
-		toggleDrawerOpen: () => {
+		toggleDrawerOpen: async () => {
 			const context = getContext< Context >();
 			context.drawerOpen = ! context.drawerOpen;
 
 			if ( context.drawerOpen ) {
-				document.body.dispatchEvent(
-					new Event( 'wc-mini-cart-interactivity-open-drawer' )
-				);
+				await renderContents( state );
 			}
+		},
+
+		closeDrawer: () => {
+			const context = getContext< Context >();
+			context.drawerOpen = false;
 		},
 
 		loadScripts: async () => {
@@ -197,17 +221,17 @@ store< Store >( 'woocommerce/mini-cart-interactivity', {
 				await loadScripts();
 			}
 
-			// Remove adding to cart event handler.
-			document.body.removeEventListener(
-				'wc-blocks_adding_to_cart',
-				loadScripts
-			);
-
 			document.body.addEventListener(
 				'wc-mini-cart-interactivity-close-drawer',
 				() => {
 					context.drawerOpen = false;
 				}
+			);
+
+			// Remove adding to cart event handler.
+			document.body.removeEventListener(
+				'wc-blocks_adding_to_cart',
+				loadScripts
 			);
 
 			removeJQueryAddedToCartEvent();

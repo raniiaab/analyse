@@ -10,6 +10,7 @@ use Automattic\WooCommerce\Blocks\Utils\BlockTemplateUtils;
 use Automattic\WooCommerce\Blocks\Utils\Utils;
 use Automattic\WooCommerce\Blocks\Utils\MiniCartUtils;
 use Automattic\WooCommerce\Blocks\Utils\BlockHooksTrait;
+use Automattic\WooCommerce\Blocks\InteractivityComponents\Drawer;
 
 /**
  * Mini-Cart class.
@@ -467,6 +468,23 @@ class MiniCartInteractivity extends AbstractBlock {
 	}
 
 	/**
+	 * Get the template part contents container.
+	 *
+	 * @param string $template_contents The template part contents.
+	 *
+	 * @return string
+	 */
+	protected function get_template_part_contents_container( $template_contents ) {
+		ob_start();
+		?>
+			<div class="wc-block-mini-cart-interactivity__template-part" style="display:none">				
+				<?php echo wp_kses_post( $template_contents ); ?>
+			</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * Get the markup for the Mini-Cart block.
 	 *
 	 * @param array  $attributes Block attributes.
@@ -490,34 +508,41 @@ class MiniCartInteractivity extends AbstractBlock {
 			'hasHiddenPrice'     => isset( $attributes['hasHiddenPrice'] ) ? $attributes['hasHiddenPrice'] : false,
 			'amount'             => 0,
 		);
-		$wrapper_attributes     = get_block_wrapper_attributes(
+
+		$wrapper_attributes = get_block_wrapper_attributes(
 			array(
 				'class' => $wrapper_classes,
+				'style' => $wrapper_styles,
 			)
 		);
 
 		$interactivity_namespace = wp_json_encode( array( 'namespace' => $this->get_full_block_name() ), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+		$close_button            = Drawer::render_close_button( 'woocommerce/mini-cart-interactivity::callbacks.closeDrawer' );
 
 		ob_start();
 		?>
-		<div style="<?php echo esc_attr( $wrapper_styles ); ?>" <?php echo esc_attr( $wrapper_attributes ); ?> >
+		<div style="<?php echo esc_attr( $wrapper_attributes ); ?>"  >
 				<div data-wc-interactive='<?php echo esc_attr( $interactivity_namespace ); ?>' data-wc-context='<?php echo esc_attr( wp_json_encode( $cart_context ) ); ?>'>
 					<?php
 						// Output is already escaped in the function call.
 						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						echo $this->render_mini_cart_button( $attributes, $cart_item_count, false );
 					?>
+					<?php
+						// Output is already escaped by Drawer::render.
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo Drawer::render(
+							array(
+								'is_initially_open'        => false,
+								// Output is already escaped by Drawer::render_close_button.
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								'children'                 => $close_button . $this->get_template_part_contents_container( $template_part_contents ),
+								'is_open_context_property' => 'woocommerce/mini-cart-interactivity::context.drawerOpen',
+							)
+						);
+					?>
 				</div>
-				<?php // Keep the drawer separate so that we don't mutate DOM within the interactivity API powered mini cart icon. ?>
-				<div class="is-loading wc-block-components-drawer__screen-overlay wc-block-components-drawer__screen-overlay--is-hidden" aria-hidden="true">
-					<div class="wc-block-mini-cart-interactivity__template-part" style="display:none">
-						<?php echo wp_kses_post( $template_part_contents ); ?>
-					</div>
-					<div class="wc-block-mini-cart__drawer wc-block-components-drawer">
-						<div class="wc-block-components-drawer__content">
-						</div>
-					</div>
-				</div>
+				
 		</div> 
 		<?php
 		return ob_get_clean();
