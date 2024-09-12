@@ -305,17 +305,18 @@ class UpdateProducts {
 	 * @return int|string|WP_Error
 	 */
 	private function product_image_upload( $product_id, $image_src, $image_alt ) {
-		require_once ABSPATH . 'wp-admin/includes/media.php';
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/image.php';
+		return 0;
+		// require_once ABSPATH . 'wp-admin/includes/media.php';
+		// require_once ABSPATH . 'wp-admin/includes/file.php';
+		// require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		// Since the media_sideload_image function is expensive and can take longer to complete
-		// the process of downloading the external image and uploading it to the media library,
-		// here we are increasing the time limit to avoid any issues.
-		set_time_limit( 150 );
-		wp_raise_memory_limit( 'image' );
+		// // Since the media_sideload_image function is expensive and can take longer to complete
+		// // the process of downloading the external image and uploading it to the media library,
+		// // here we are increasing the time limit to avoid any issues.
+		// set_time_limit( 150 );
+		// wp_raise_memory_limit( 'image' );
 
-		return media_sideload_image( $image_src, $product_id, $image_alt, 'id' );
+		// return media_sideload_image( $image_src, $product_id, $image_alt, 'id' );
 	}
 
 	/**

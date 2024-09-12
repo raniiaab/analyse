@@ -1783,3 +1783,61 @@ function wc_product_attach_featured_image( $attachment_id, $product = null, $sav
 	}
 }
 add_action( 'add_attachment', 'wc_product_attach_featured_image' );
+
+const DUMMY_PRODUCTS = [
+	[
+		'title'       => 'Vintage Typewriter',
+		'image'       => 'assets/images/pattern-placeholders/writing-typing-keyboard-technology-white-vintage.jpg',
+	],
+	[
+		'title'       => 'Leather-Clad Leisure Chair',
+		'image'       => 'assets/images/pattern-placeholders/table-wood-house-chair-floor-window.jpg',
+	],
+	[
+		'title'       => 'Black and White',
+		'image'       => 'assets/images/pattern-placeholders/white-black-black-and-white-photograph-monochrome-photography.jpg',
+	],
+	[
+		'title'       => '3-Speed Bike',
+		'image'       => 'assets/images/pattern-placeholders/road-sport-vintage-wheel-retro-old.jpg',
+	],
+	[
+		'title'       => 'Hi-Fi Headphones',
+		'image'       => 'assets/images/pattern-placeholders/man-person-music-black-and-white-white-photography.jpg',
+	],
+	[
+		'title'       => 'Retro Glass Jug (330 ml)',
+		'image'       => 'assets/images/pattern-placeholders/drinkware-liquid-tableware-dishware-bottle-fluid.jpg',
+	],
+];
+
+/**
+ * Replace the uploads URL with the external image URL.
+ *
+ * @internal
+ * @since 9.4.0
+ * @param string $src The URL of the placeholder image.
+ * @return string
+ */
+function custom_woocommerce_product_thumbnail( $src ) {
+	global $product;
+
+	if ( ! $product ) {
+		return $src;
+	}
+
+	$product_id = $product->get_id();
+	$is_sample_product = get_post_meta( $product_id, '_headstart_post', true );
+
+	if ( $is_sample_product ) {
+		$product_title = $product->get_title();
+		
+		foreach ( DUMMY_PRODUCTS as $dummy_product ) {
+			if ( $dummy_product['title'] === $product_title ) {
+				return 'https://raw.githubusercontent.com/woocommerce/woocommerce/trunk/plugins/woocommerce/' . $dummy_product['image'] . '?raw=true';
+			}
+		}
+	}
+	return $src;
+}
+add_filter( 'woocommerce_placeholder_img_src', 'custom_woocommerce_product_thumbnail', 10, 1 );
