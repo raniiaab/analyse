@@ -468,6 +468,7 @@ class ProductSchema extends AbstractSchema {
 			'average_rating'      => (string) $product->get_average_rating(),
 			'review_count'        => $product->get_review_count(),
 			'images'              => $this->get_images( $product ),
+			'placeholder_image'   => $this->get_placeholder_image( $product ),
 			'categories'          => $this->get_term_list( $product, 'product_cat' ),
 			'tags'                => $this->get_term_list( $product, 'product_tag' ),
 			'attributes'          => $this->get_attributes( $product ),
@@ -498,6 +499,18 @@ class ProductSchema extends AbstractSchema {
 	 * @return array
 	 */
 	protected function get_images( \WC_Product $product ) {
+		$attachment_ids = array_merge( [ $product->get_image_id() ], $product->get_gallery_image_ids() );
+
+		return array_values( array_filter( array_map( [ $this->image_attachment_schema, 'get_item_response' ], $attachment_ids ) ) );
+	}
+
+	/**
+	 * Get the product placeholder image.
+	 *
+	 * @param \WC_Product $product Product instance.
+	 * @return string
+	 */
+	protected function get_placeholder_image( \WC_Product $product ) {
 		$attachment_ids = array_merge( [ $product->get_image_id() ], $product->get_gallery_image_ids() );
 
 		return array_values( array_filter( array_map( [ $this->image_attachment_schema, 'get_item_response' ], $attachment_ids ) ) );
