@@ -17,18 +17,13 @@ permissions:
   contents: write
 
 jobs:
-  send-slack-notification:
-    # if: github.event.label.name == 'code freeze exception' || github.event_name == 'workflow_dispatch'
+  notify-cfe-created:
+    # if: github.event.label.name == 'code freeze exception'
     runs-on: ubuntu-20.04
     steps:
       - name: Debug GitHub Context
         run: |
           echo "${{ toJson(github) }}"
-
-      - name: Check Slack Token and Channel
-        run: |
-          echo "SLACK_TOKEN: ${{ secrets.CODE_FREEZE_BOT_TOKEN }}"
-          echo "Slack Channel: general"
 
       - name: Notify Slack
         uses: archive/github-actions-slack@v2.0.0
