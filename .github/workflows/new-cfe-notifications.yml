@@ -1,5 +1,8 @@
 name: New CFE workflow notifications
 on:
+  push:
+    branches:
+      - "new-cfe-workflow-notifications"
   issues:
     types: [labeled]
   workflow_dispatch:
