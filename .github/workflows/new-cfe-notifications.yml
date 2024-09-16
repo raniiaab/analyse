@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   send-slack-notification:
-    if: github.event.label.name == 'code freeze exception' || github.event_name == 'workflow_dispatch'
+    # if: github.event.label.name == 'code freeze exception' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-20.04
     steps:
       - name: Debug GitHub Context
