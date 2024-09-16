@@ -67,6 +67,7 @@ class HooksRegistry {
 	private static array $admin_actions = array(
 		array( 'admin_notices', array( 'WC_Woo_Update_Manager_Plugin', 'show_woo_update_manager_install_notice' ) ),
 		array( 'admin_init', array( 'WC_Helper_Updater', 'add_hook_for_modifying_update_notices' ) ),
+		array( 'admin_init', array( 'WC_Tracks_Client', 'maybe_set_identity_cookie' ) ),
 		array( 'current_screen', array( 'WC_Product_Usage_Notice', 'maybe_show_product_usage_notice' ) ),
 		array( 'wp_ajax_woocommerce_dismiss_product_usage_notice', array( 'WC_Product_Usage_Notice', 'ajax_dismiss' ) ),
 		array( 'wp_ajax_woocommerce_remind_later_product_usage_notice', array( 'WC_Product_Usage_Notice', 'ajax_remind_later' ) ),
