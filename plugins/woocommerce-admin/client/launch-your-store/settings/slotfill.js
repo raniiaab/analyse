@@ -47,6 +47,9 @@ const SiteVisibility = () => {
 	const [ privateLink, setPrivateLink ] = useState(
 		setting?.woocommerce_private_link || 'no'
 	);
+	const [ hideAdminBarBadge, setHideAdminBarBadge ] = useState(
+		setting?.woocommerce_coming_soon_hide_admin_bar_badge || 'no'
+	);
 	const formRef = useRef( null );
 	const saveButtonRef = useRef( null );
 
@@ -63,24 +66,36 @@ const SiteVisibility = () => {
 		}
 	}, [] );
 
-	useEffect( () => {
-		const initValues = {
-			comingSoon: setting.woocommerce_coming_soon,
-			storePagesOnly: setting.woocommerce_store_pages_only,
-			privateLink: setting.woocommerce_private_link || 'no',
-		};
+	// Using a lazy initializer to store initial values on page render
+	const [ initialSettings ] = useState( () => ( {
+		comingSoon: setting.woocommerce_coming_soon,
+		storePagesOnly: setting.woocommerce_store_pages_only,
+		privateLink: setting.woocommerce_private_link || 'no',
+		hideAdminBarBadge:
+			setting.woocommerce_coming_soon_hide_admin_bar_badge || 'no',
+	} ) );
 
-		const currentValues = { comingSoon, storePagesOnly, privateLink };
+	useEffect( () => {
 		const saveButton = document.getElementsByClassName(
 			'woocommerce-save-button'
 		)[ 0 ];
 		if ( saveButton ) {
 			saveButton.disabled =
-				initValues.comingSoon === currentValues.comingSoon &&
-				initValues.storePagesOnly === currentValues.storePagesOnly &&
-				initValues.privateLink === currentValues.privateLink;
+				initialSettings.comingSoon === comingSoon &&
+				initialSettings.storePagesOnly === storePagesOnly &&
+				initialSettings.privateLink === privateLink &&
+				initialSettings.hideAdminBarBadge === hideAdminBarBadge;
 		}
-	}, [ comingSoon, storePagesOnly, privateLink ] );
+	}, [
+		comingSoon,
+		storePagesOnly,
+		privateLink,
+		hideAdminBarBadge,
+		initialSettings.comingSoon,
+		initialSettings.storePagesOnly,
+		initialSettings.privateLink,
+		initialSettings.hideAdminBarBadge,
+	] );
 
 	const copyLink = __( 'Copy link', 'woocommerce' );
 	const copied = __( 'Copied!', 'woocommerce' );
@@ -129,6 +144,11 @@ const SiteVisibility = () => {
 				type="hidden"
 				value={ privateLink }
 				name="woocommerce_private_link"
+			/>
+			<input
+				type="hidden"
+				value={ hideAdminBarBadge }
+				name="woocommerce_coming_soon_hide_admin_bar_badge"
 			/>
 			<h2>{ __( 'Site visibility', 'woocommerce' ) }</h2>
 			<p className="site-visibility-settings-slotfill-description">
@@ -183,7 +203,7 @@ const SiteVisibility = () => {
 				</p>
 				<div
 					className={ clsx(
-						'site-visibility-settings-slotfill-section-content',
+						'site-visibility-settings-slotfill-section-content indent-one-level',
 						{
 							'is-hidden': comingSoon !== 'yes',
 						}
@@ -285,6 +305,38 @@ const SiteVisibility = () => {
 						'woocommerce'
 					) }
 				</p>
+			</div>
+			<div className="site-visibility-settings-slotfill-section">
+				<h4>{ __( 'Admin bar badge', 'woocommerce' ) }</h4>
+				<div
+					className={ clsx(
+						'site-visibility-settings-slotfill-section-content'
+					) }
+				>
+					<ToggleControl
+						label={
+							<>
+								{ __( 'Hide admin bar badge', 'woocommerce' ) }
+								<p>
+									{ __(
+										'Hide the site visibility badge from the admin bar.',
+										'woocommerce'
+									) }
+								</p>
+							</>
+						}
+						checked={ hideAdminBarBadge === 'yes' }
+						onChange={ ( checked ) => {
+							setHideAdminBarBadge( checked ? 'yes' : 'no' );
+							recordEvent(
+								'site_visibility_hide_admin_bar_badge_toggle',
+								{
+									enabled: checked,
+								}
+							);
+						} }
+					/>
+				</div>
 			</div>
 			{ formRef.current && saveButtonRef.current ? (
 				<ConfirmationModal
