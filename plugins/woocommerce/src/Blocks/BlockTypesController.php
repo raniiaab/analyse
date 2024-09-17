@@ -428,6 +428,7 @@ final class BlockTypesController {
 					'AllProducts',
 					'Cart',
 					'Checkout',
+					'ComingSoon',
 					'ProductGallery',
 				)
 			);
