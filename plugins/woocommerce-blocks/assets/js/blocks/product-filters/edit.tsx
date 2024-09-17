@@ -6,7 +6,6 @@ import {
 	InnerBlocks,
 	InspectorControls,
 	useBlockProps,
-	useInnerBlocksProps,
 } from '@wordpress/block-editor';
 import {
 	BlockEditProps,
@@ -201,10 +200,4 @@ export const Edit = ( {
 			<InnerBlocks templateLock={ false } template={ TEMPLATE } />
 		</div>
 	);
-};
-
-export const Save = () => {
-	const blockProps = useBlockProps.save();
-	const innerBlocksProps = useInnerBlocksProps.save( blockProps );
-	return <div { ...innerBlocksProps } />;
 };
