@@ -44,7 +44,7 @@ class ProductCollection extends AbstractBlock {
 	 *
 	 * @var array
 	 */
-	protected $custom_order_opts = array( 'popularity', 'rating' );
+	protected $custom_order_opts = array( 'popularity', 'rating', 'post__in' );
 
 
 	/**
@@ -654,9 +654,10 @@ class ProductCollection extends AbstractBlock {
 		// Most likely this argument is being accessed in the test environment image.
 		$args['author'] = '';
 
-		return $this->get_final_query_args(
+		$final_query_args = $this->get_final_query_args(
 			$args,
 			array(
+				'collection'          => $product_collection_query_context['collection'] ?? '',
 				'orderby'             => $orderby,
 				'on_sale'             => $on_sale,
 				'stock_status'        => $stock_status,
@@ -667,6 +668,8 @@ class ProductCollection extends AbstractBlock {
 				'priceRange'          => $price_range,
 			)
 		);
+
+		return $final_query_args;
 	}
 
 	/**
@@ -763,6 +766,7 @@ class ProductCollection extends AbstractBlock {
 		$final_query = $this->get_final_query_args(
 			$common_query_values,
 			array(
+				'collection'          => $this->parsed_block['attrs']['collection'] ?? '',
 				'on_sale'             => $is_on_sale,
 				'stock_status'        => $query['woocommerceStockStatus'],
 				'orderby'             => $query['orderBy'],
@@ -787,26 +791,34 @@ class ProductCollection extends AbstractBlock {
 	 * @param bool  $is_exclude_applied_filters Whether to exclude the applied filters or not.
 	 */
 	private function get_final_query_args( $common_query_values, $query, $is_exclude_applied_filters = false ) {
-		$handpicked_products = $query['handpicked_products'] ?? array();
-		$orderby_query       = $query['orderby'] ? $this->get_custom_orderby_query( $query['orderby'] ) : array();
-		$on_sale_query       = $this->get_on_sale_products_query( $query['on_sale'] );
-		$stock_query         = $this->get_stock_status_query( $query['stock_status'] );
-		$visibility_query    = is_array( $query['stock_status'] ) ? $this->get_product_visibility_query( $stock_query, $query['stock_status'] ) : array();
-		$featured_query      = $this->get_featured_query( $query['featured'] ?? false );
-		$attributes_query    = $this->get_product_attributes_query( $query['product_attributes'] );
-		$taxonomies_query    = $query['taxonomies_query'] ?? array();
-		$tax_query           = $this->merge_tax_queries( $visibility_query, $attributes_query, $taxonomies_query, $featured_query );
-		$date_query          = $this->get_date_query( $query['timeFrame'] ?? array() );
-		$price_query_args    = $this->get_price_range_query_args( $query['priceRange'] ?? array() );
+		$handpicked_query = $this->get_handpicked_query( $query['handpicked_products'], $query['collection'] );
+		$on_sale_query    = $this->get_on_sale_products_query( $query['on_sale'] );
+		$orderby_query    = $query['orderby'] ? $this->get_custom_orderby_query( $query['orderby'] ) : array();
+		$stock_query      = $this->get_stock_status_query( $query['stock_status'] );
+		$visibility_query = is_array( $query['stock_status'] ) ? $this->get_product_visibility_query( $stock_query, $query['stock_status'] ) : array();
+		$featured_query   = $this->get_featured_query( $query['featured'] ?? false );
+		$attributes_query = $this->get_product_attributes_query( $query['product_attributes'] );
+		$taxonomies_query = $query['taxonomies_query'] ?? array();
+		$tax_query        = $this->merge_tax_queries( $visibility_query, $attributes_query, $taxonomies_query, $featured_query );
+		$date_query       = $this->get_date_query( $query['timeFrame'] ?? array() );
+		$price_query_args = $this->get_price_range_query_args( $query['priceRange'] ?? array() );
 
 		// We exclude applied filters to generate product ids for the filter blocks.
 		$applied_filters_query = $is_exclude_applied_filters ? array() : $this->get_queries_by_applied_filters();
 
-		$merged_query = $this->merge_queries( $common_query_values, $orderby_query, $on_sale_query, $stock_query, $tax_query, $applied_filters_query, $date_query, $price_query_args );
+		$merged_query = $this->merge_queries(
+			$common_query_values,
+			$orderby_query,
+			$handpicked_query,
+			$on_sale_query,
+			$stock_query,
+			$tax_query,
+			$applied_filters_query,
+			$date_query,
+			$price_query_args
+		);
 
-		$result = $this->filter_query_to_only_include_ids( $merged_query, $handpicked_products );
-
-		return $result;
+		return $merged_query;
 	}
 
 	/**
@@ -865,28 +877,24 @@ class ProductCollection extends AbstractBlock {
 				if ( empty( array_intersect( $this->get_valid_query_vars(), array_keys( $query ) ) ) ) {
 					return $this->merge_queries( $acc, ...array_values( $query ) );
 				}
-				return $this->array_merge_recursive_replace_non_array_properties( $acc, $query );
+
+				$result = $this->array_merge_recursive_replace_non_array_properties( $acc, $query );
+
+				// The post__in query needs special handling, as it should be an
+				// intersection of all post__in queries.
+				if (
+					is_array( $acc['post__in'] ) &&
+					! empty( $acc['post__in'] ) &&
+					is_array( $query['post__in'] ) &&
+					! empty( $query['post__in'] )
+				) {
+					$result['post__in'] = array_intersect( $acc['post__in'], $query['post__in'] );
+				}
+
+				return $result;
 			},
 			array()
 		);
-
-		/**
-		 * If there are duplicated items in post__in, it means that we need to
-		 * use the intersection of the results, which in this case, are the
-		 * duplicated items.
-		 */
-		if (
-			! empty( $merged_query['post__in'] ) &&
-			is_array( $merged_query['post__in'] ) &&
-			count( $merged_query['post__in'] ) > count( array_unique( $merged_query['post__in'] ) )
-		) {
-			$merged_query['post__in'] = array_unique(
-				array_diff(
-					$merged_query['post__in'],
-					array_unique( $merged_query['post__in'] )
-				)
-			);
-		}
 
 		return $merged_query;
 	}
@@ -899,7 +907,7 @@ class ProductCollection extends AbstractBlock {
 	 * @return array
 	 */
 	private function get_custom_orderby_query( $orderby ) {
-		if ( ! in_array( $orderby, $this->custom_order_opts, true ) ) {
+		if ( ! in_array( $orderby, $this->custom_order_opts, true ) || 'post__in' === $orderby ) {
 			return array( 'orderby' => $orderby );
 		}
 
@@ -912,6 +920,30 @@ class ProductCollection extends AbstractBlock {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'meta_key' => $meta_keys[ $orderby ],
 			'orderby'  => 'meta_value_num',
+		);
+	}
+
+	/**
+	 * Return query for hand-picked products.
+	 *
+	 * @param int[]  $product_ids Hand-picked products IDs.
+	 * @param string $collection Collection name.
+	 *
+	 * @return array The post__in query.
+	 */
+	private function get_handpicked_query( $product_ids, $collection ) {
+		if ( is_array( $product_ids ) && ! empty( $product_ids ) ) {
+			return array(
+				'post__in' => $product_ids,
+			);
+		}
+
+		// For the Hand-Picked collection, we need to always display no results
+		// if no products were picked. To achieve this, we need to set post__in to [-1]
+		// so that there are no IDs to be intersected.
+		$is_handpicked_collection = 'woocommerce/product-collection/hand-picked' === $collection;
+		return array(
+			'post__in' => $is_handpicked_collection ? array( -1 ) : array(),
 		);
 	}
 
@@ -1241,23 +1273,6 @@ class ProductCollection extends AbstractBlock {
 
 		// phpcs:ignore WordPress.DB.SlowDBQuery
 		return ! empty( $result ) ? array( 'tax_query' => $result ) : array();
-	}
-
-	/**
-	 * Apply the query only to a subset of products
-	 *
-	 * @param array $query  The query.
-	 * @param array $ids  Array of selected product ids.
-	 *
-	 * @return array
-	 */
-	private function filter_query_to_only_include_ids( $query, $ids ) {
-		if ( ! empty( $ids ) ) {
-			$query['post__in'] = empty( $query['post__in'] ) ?
-				$ids : array_intersect( $ids, $query['post__in'] );
-		}
-
-		return $query;
 	}
 
 	/**
