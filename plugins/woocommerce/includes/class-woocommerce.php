@@ -705,10 +705,7 @@ final class WooCommerce {
 		 */
 		include_once WC_ABSPATH . 'includes/wccom-site/class-wc-wccom-site.php';
 
-		/**
-		 * Product Usage
-		 */
-		include_once WC_ABSPATH . 'includes/product-usage/class-wc-product-usage.php';
+		\Automattic\WooCommerce\HooksRegistry::load_hooks();
 
 		/**
 		 * Libraries and packages.
