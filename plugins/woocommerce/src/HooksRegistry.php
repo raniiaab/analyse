@@ -40,6 +40,8 @@ class HooksRegistry {
 	 * @var array[] $all_request_filters
 	 */
 	private static array $all_request_filters = array(
+		array( 'query_vars', array( 'WC_Auth', 'add_query_vars_static' ), 0 ),
+		array( 'init', array( 'WC_Auth', 'add_endpoint' ), 0 ),
 		array( 'rest_api_init', array( 'WC_Helper_Subscriptions_API', 'register_rest_routes' ) ),
 		array( 'rest_api_init', array( 'WC_Helper_Orders_API', 'register_rest_routes' ) ),
 		array( 'determine_current_user', array( 'WC_WCCOM_Site', 'authenticate_wccom' ), 14 ),
@@ -65,7 +67,12 @@ class HooksRegistry {
 	 * @var array[] $admin_actions
 	 */
 	private static array $admin_actions = array(
+		array( 'image_get_intermediate_size', array( 'WC_Regenerate_Images', 'filter_image_get_intermediate_size' ), 10, 3 ),
+
+		array( 'init', array( 'WC_Marketplace_Updater', 'init' ) ),
+		array( 'init', array( 'WC_Admin_Marketplace_Promotions', 'init' ), 11 ),
 		array( 'admin_notices', array( 'WC_Woo_Update_Manager_Plugin', 'show_woo_update_manager_install_notice' ) ),
+		array( 'admin_init', array( 'WC_Tracks_Client', 'maybe_set_identity_cookie' ) ),
 		array( 'admin_init', array( 'WC_Helper_Updater', 'add_hook_for_modifying_update_notices' ) ),
 		array( 'current_screen', array( 'WC_Product_Usage_Notice', 'maybe_show_product_usage_notice' ) ),
 		array( 'wp_ajax_woocommerce_dismiss_product_usage_notice', array( 'WC_Product_Usage_Notice', 'ajax_dismiss' ) ),
@@ -78,7 +85,10 @@ class HooksRegistry {
 	 *
 	 * @var array $admin_filters
 	 */
-	private static array $admin_filters = array();
+	private static array $admin_filters = array(
+		array( 'image_get_intermediate_size', array( __CLASS__, 'filter_image_get_intermediate_size' ), 10, 3 ),
+		array( 'wp_get_attachment_image_src', array( __CLASS__, 'maybe_resize_image' ), 10, 4 ),
+	);
 
 	/**
 	 * Load all registered hooks.
@@ -148,4 +158,5 @@ class HooksRegistry {
 
 		self::$hooks_loaded = false;
 	}
+
 }
