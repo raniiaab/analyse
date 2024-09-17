@@ -63,7 +63,7 @@ test.describe( 'Filters Overlay Template Part', () => {
 			.locator( '[data-type="core/template-part"]' )
 			.filter( {
 				has: editor.canvas.getByLabel(
-					templatePartData.selectors.editor.blocks.productFilters
+					templatePartData.selectors.editor.blocks.activeFilters
 						.blockLabel
 				),
 			} );
