@@ -84,11 +84,6 @@ class HooksRegistry {
 	 * Load all registered hooks.
 	 */
 	public static function load_hooks() {
-		if ( self::$hooks_loaded ) {
-			wc_doing_it_wrong( 'HooksRegistry::load_hooks', 'HooksRegistry is already loaded.', '9.5.0' );
-			return;
-		}
-
 		foreach ( self::$all_request_actions as $action ) {
 			call_user_func_array( 'add_action', $action );
 		}
