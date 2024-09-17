@@ -130,10 +130,10 @@ final class ProductFilterAttribute extends AbstractBlock {
 					return array(
 						'title'      => $term_object->name,
 						'attributes' => array(
-							'data-wc-on--click' => "$action_namespace::actions.removeFilter",
+							'value'             => $term,
+							'data-wc-on--click' => "$action_namespace::actions.toggleFilter",
 							'data-wc-context'   => "$action_namespace::" . wp_json_encode(
 								array(
-									'value'         => $term,
 									'attributeSlug' => $product_attribute,
 									'queryType'     => get_query_var( "query_type_{$product_attribute}" ),
 								),
@@ -228,8 +228,8 @@ final class ProductFilterAttribute extends AbstractBlock {
 		);
 
 		$filter_context = array(
-			'on_change' => "{$this->get_full_block_name()}::actions.updateProducts",
-			'items'     => $filtered_options,
+			'action' => "{$this->get_full_block_name()}::actions.toggleFilter",
+			'items'  => $filtered_options,
 		);
 
 		foreach ( $block->parsed_block['innerBlocks'] as $inner_block ) {
