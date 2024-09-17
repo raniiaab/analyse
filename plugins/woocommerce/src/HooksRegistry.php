@@ -91,30 +91,30 @@ class HooksRegistry {
 
 		if ( is_admin() ) {
 			foreach ( self::$admin_actions as $action ) {
-				add_action( ...$action );
+				call_user_func_array( 'add_action', $action );
 			}
 
 			foreach ( self::$admin_filters as $filter ) {
-				add_filter( ...$filter );
+				call_user_func_array( 'add_filter', $filter );
 			}
 		}
 
 		if ( ! is_admin() && ! defined( 'DOING_CRON' ) ) {
 			foreach ( self::$frontend_actions as $action ) {
-				add_action( ...$action );
+				call_user_func_array( 'add_action', $action );
 			}
 
 			foreach ( self::$frontend_filters as $filter ) {
-				add_filter( ...$filter );
+				call_user_func_array( 'add_filter', $filter );
 			}
 		}
 
 		foreach ( self::$all_request_actions as $action ) {
-			add_action( ...$action );
+			call_user_func_array( 'add_action', $action );
 		}
 
 		foreach ( self::$all_request_filters as $filter ) {
-			add_filter( ...$filter );
+			call_user_func_array( 'add_filter', $filter );
 		}
 
 		self::$hooks_loaded = true;
@@ -130,30 +130,30 @@ class HooksRegistry {
 
 		if ( is_admin() ) {
 			foreach ( self::$admin_actions as $action ) {
-				remove_action( ...$action );
+				call_user_func_array( 'remove_action', $action );
 			}
 
 			foreach ( self::$admin_filters as $filter ) {
-				remove_filter( ...$filter );
+				call_user_func_array( 'remove_filter', $filter );
 			}
 		}
 
 		if ( ! is_admin() && ! defined( 'DOING_CRON' ) ) {
 			foreach ( self::$frontend_actions as $action ) {
-				remove_action( ...$action );
+				call_user_func_array( 'remove_action', $action );
 			}
 
 			foreach ( self::$frontend_filters as $filter ) {
-				remove_filter( ...$filter );
+				call_user_func_array( 'remove_filter', $filter );
 			}
 		}
 
 		foreach ( self::$all_request_actions as $action ) {
-			remove_action( ...$action );
+			call_user_func_array( 'remove_action', $action );
 		}
 
 		foreach ( self::$all_request_filters as $filter ) {
-			remove_filter( ...$filter );
+			call_user_func_array( 'remove_filter', $filter );
 		}
 
 		self::$hooks_loaded = false;
