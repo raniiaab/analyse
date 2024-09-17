@@ -712,7 +712,7 @@ final class WooCommerce {
 		 */
 		include_once WC_ABSPATH . 'includes/wccom-site/class-wc-wccom-site.php';
 
-//		\Automattic\WooCommerce\HooksRegistry::load_hooks();
+		\Automattic\WooCommerce\HooksRegistry::load_hooks();
 
 		/**
 		 * Libraries and packages.

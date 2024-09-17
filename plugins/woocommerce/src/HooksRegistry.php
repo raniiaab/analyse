@@ -89,6 +89,14 @@ class HooksRegistry {
 			return;
 		}
 
+		foreach ( self::$all_request_actions as $action ) {
+			call_user_func_array( 'add_action', $action );
+		}
+
+		foreach ( self::$all_request_filters as $filter ) {
+			call_user_func_array( 'add_filter', $filter );
+		}
+
 		if ( is_admin() ) {
 			foreach ( self::$admin_actions as $action ) {
 				call_user_func_array( 'add_action', $action );
@@ -107,14 +115,6 @@ class HooksRegistry {
 			foreach ( self::$frontend_filters as $filter ) {
 				call_user_func_array( 'add_filter', $filter );
 			}
-		}
-
-		foreach ( self::$all_request_actions as $action ) {
-			call_user_func_array( 'add_action', $action );
-		}
-
-		foreach ( self::$all_request_filters as $filter ) {
-			call_user_func_array( 'add_filter', $filter );
 		}
 
 		self::$hooks_loaded = true;
