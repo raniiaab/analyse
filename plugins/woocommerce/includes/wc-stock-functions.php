@@ -242,10 +242,17 @@ function wc_trigger_stock_change_notifications( $order, $changes ) {
 		return;
 	}
 
-	$order_notes = array();
+	$order_notes     = array();
+	$no_stock_amount = absint( get_option( 'woocommerce_notify_no_stock_amount', 0 ) );
 
 	foreach ( $changes as $change ) {
-		$order_notes[] = $change['product']->get_formatted_name() . ' ' . $change['from'] . '&rarr;' . $change['to'];
+		$order_notes[]    = $change['product']->get_formatted_name() . ' ' . $change['from'] . '&rarr;' . $change['to'];
+		$low_stock_amount = absint( wc_get_low_stock_amount( wc_get_product( $change['product']->get_id() ) ) );
+		if ( $change['to'] <= $no_stock_amount ) {
+			do_action( 'woocommerce_no_stock', wc_get_product( $change['product']->get_id() ) );
+		} elseif ( $change['to'] <= $low_stock_amount ) {
+			do_action( 'woocommerce_low_stock', wc_get_product( $change['product']->get_id() ) );
+		}
 
 		if ( $change['to'] < 0 ) {
 			/**
@@ -312,8 +319,6 @@ function wc_trigger_stock_change_actions( $product ) {
 		do_action( 'woocommerce_low_stock', $product );
 	}
 }
-add_action( 'woocommerce_variation_set_stock', 'wc_trigger_stock_change_actions' );
-add_action( 'woocommerce_product_set_stock', 'wc_trigger_stock_change_actions' );
 
 /**
  * Increase stock levels for items within an order.
@@ -485,11 +490,8 @@ function wc_get_low_stock_amount( WC_Product $product ) {
 	$low_stock_amount = $product->get_low_stock_amount();
 
 	if ( '' === $low_stock_amount && $product->is_type( 'variation' ) ) {
-		$parent_product = wc_get_product( $product->get_parent_id() );
-
-		if ( $parent_product instanceof WC_Product ) {
-			$low_stock_amount = $parent_product->get_low_stock_amount();
-		}
+		$product          = wc_get_product( $product->get_parent_id() );
+		$low_stock_amount = $product->get_low_stock_amount();
 	}
 
 	if ( '' === $low_stock_amount ) {
